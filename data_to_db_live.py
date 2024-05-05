@@ -55,6 +55,7 @@ def live_price(table_name, currency_name): #(table_name, currency_name):
     #x['Stock_Splits'] = x['Stock Splits']
     #print(x.iloc[-1])
     y = x[:: -1]
+    #print( x.iloc[-1])
     #print(y)
     y.to_sql(table_name, con, if_exists='append', index=False, chunksize=1)
 
@@ -77,5 +78,55 @@ def updater():
 #updater()
 
 def live_click(table, currency):
-        return live_price(table_name= table, currency_name=currency)
+    return live_price(table_name= table, currency_name=currency)
+
+
+# def live_price_only( currency):
+#     x = yf.Ticker(currency).history() #currency_name) # ('BTC-GBP').history()
+#     #cur.execute('SELECT * FROM {0}'.format(table_name))
+#     #stock = x.sort_index(ascending = False)
+#     x.reset_index(inplace=True)
+#     x['Date'] = datetime.datetime.now()
+#     x.rename({'Stock Splits':'Stock_Splits'}, axis=1, inplace=True)
+#     #x['Stock_Splits'] = x['Stock Splits']
+#     #print(x.iloc[-1])
+#     # y = x[:: -1]#x.iloc[-1]
+#     y = x.iloc[-1]
+#     print( y.Date)
+#     print( y.Close)
+#     return y.Date, y.Close
+
+#live_price_only('BTC-GBP')
+
+
+def live_price_only(currency):
+    x = yf.Ticker(currency).history()
+
+    # Check if the DataFrame is empty
+    if x.empty:
+        print("Error: DataFrame is empty.")
+        return None, None
+
+    x.reset_index(inplace=True)
+    x['Date'] = datetime.datetime.now()
+    x.rename({'Stock Splits': 'Stock_Splits'}, axis=1, inplace=True)
+
+    # Check if the DataFrame has 'Date' and 'Close' columns
+    if 'Date' not in x.columns or 'Close' not in x.columns:
+        print("Error: DataFrame is missing 'Date' or 'Close' columns.")
+        return None, None
+
+    # Obtain the last row as a Pandas Series
+    y = x.iloc[-1]
+
+    # Access 'Date' and 'Close' using dictionary-style indexing
+    date_value = y['Date']
+    close_value = y['Close']
+
+    print(date_value)
+    print(close_value)
+
+    return date_value, close_value
+
+
     

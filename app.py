@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, session, url_for
+from flask import Flask, render_template, request, redirect, session, url_for, jsonify
 from data_to_db_live import live_click, updater
 #from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import create_engine
@@ -26,10 +26,11 @@ import sqlite3
 conn=sqlite3.connect('historic_database.db', check_same_thread=False)
 curs=conn.cursor()
 
-
+global numSamples
+numSamples = 10
 
 def getHistData (numSamples, table_name):
-    curs.execute("SELECT * FROM {0} ORDER BY Date DESC LIMIT ".format(table_name) + str(numSamples))
+    curs.execute("SELECT * FROM {0} ORDER BY Date DESC LIMIT ".format(table_name) + str(10) )#str(numSamples))
     data = curs.fetchall()
     #conn.close()
     dates = []
@@ -47,8 +48,7 @@ def getHistData (numSamples, table_name):
 # 	return maxNumberRows
 
 # define and initialize global variables
-global numSamples
-numSamples = 10
+
 
 #tables = ["BTC_GBP", "ETH_GBP", "BNB_GBP"]
 tables = [] # list
@@ -102,7 +102,9 @@ def live():
     #sample = 2
     if request.method == "GET":
         dates_live, close_live = getHistDataLive(table_nameLive='BTC_GBP')
-        #live_click(table = 'BTC_GBP', currency='BTC-GBP')
+        #dates_live, close_live = 
+        live_click(table = 'BTC_GBP', currency='BTC-GBP')
+        #updater()
         return render_template(
                 template_name_or_list='chart_live.html',
                                 close_live= close_live,
@@ -113,6 +115,7 @@ def live():
             currency = table_live.replace('_', '-').replace('_', '1')
             print(table_live, currency)
             #live_click(table = table_live, currency=currency)
+            #updater()
             dates_live, close_live = getHistDataLive(table_nameLive=table_live)
             return render_template(template_name_or_list='chart_live.html',
                             close_live= close_live,
@@ -126,3 +129,28 @@ def live():
 # def refresh():
 #     return redirect(url_for("live"))
 
+from data_to_db_live import live_price_only
+from flask import render_template, jsonify, request
+
+@app.route("/onlylive", methods=["GET", "POST"])
+def onlylive():
+    if request.method == "GET":
+        dates_live, close_live = live_price_only('BTC-GBP')
+        return render_template(
+            template_name_or_list='chart_only_live.html',
+            close_live=close_live,
+            dates_live=dates_live,
+            table_live='BTC_GBP',
+        )
+    elif request.method == "POST":
+        table_live = request.form.get('currency')
+        
+        # Check if 'currency' form field is not present, use a default value
+        if table_live is None:
+            table_live = 'BTC_GBP'
+        else:
+            table_live = table_live.replace('_', '-')
+        
+        dates_live, close_live = live_price_only(table_live)
+        data = {'dates_live': dates_live, 'close_live': close_live}
+        return jsonify(data), render_template('chart_only_live.html', close_live=close_live, dates_live=dates_live, table_live=table_live)

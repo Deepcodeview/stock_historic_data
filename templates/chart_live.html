@@ -11,7 +11,7 @@
 		<canvas id="myChart"></canvas>
 	</div>
 	
-	<form method="post" action="/">
+	<form method="post" action="/live">
 		<label for="currency">Choose a Currency</label>
 		 <select id="currency" name="currency">
 		 <option value="BTC_GBP">BTC-GBP</option>
@@ -410,15 +410,15 @@
 	  </form>
 
 	<script>
-		const labels = {{ dates_live | tojson}};
-		var x = {{ table_live | tojson }};
+		const labels = {{ labels | tojson}};
+		var x = {{ table_name | tojson }};
 		const data = {
 			labels: labels,
 			datasets: [{
 				label: x,
 				backgroundColor: 'rgb(255, 99, 132)',
 				borderColor: 'rgb(255, 99, 132)',
-				data: {{ close_live | tojson}},
+				data: {{ data | tojson}},
 			}]
 		};
 

@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Data</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> <!-- Add Chart.js -->
+</head>
+<body>
+    <div>
+        <label for="currency-select">Select Currency:</label>
+        <select id="currency-select">
+            <!-- Options will be populated dynamically -->
+        </select>
+    </div>
+
+    <div>
+        <label for="date-select">Select Date:</label>
+        <select id="date-select">
+            <!-- Options will be populated dynamically -->
+        </select>
+    </div>
+
+    <canvas id="myChart" width="400" height="400"></canvas> <!-- Add canvas for Chart.js -->
+
+    <script>
+        $(document).ready(function() {
+            // Fetch currency data from backend
+            $.ajax({
+                url: '/get_currencies',
+                type: 'GET',
+                success: function(response) {
+                    // Populate currency dropdown options
+                    var currencies = response.currencies;
+                    var currencySelect = $('#currency-select');
+                    currencies.forEach(function(currency) {
+                        currencySelect.append($('<option>', {
+                            value: currency,
+                            text: currency
+                        }));
+                    });
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error fetching currency data:', error);
+                }
+            });
+
+            // Fetch date data from backend
+            $.ajax({
+                url: '/get_dates',
+                type: 'GET',
+                success: function(response) {
+                    // Populate date dropdown options
+                    var dates = response.date_range; // Change to response.date_range
+                    var dateSelect = $('#date-select');
+                    dates.forEach(function(date) {
+                        dateSelect.append($('<option>', {
+                            value: date,
+                            text: date
+                        }));
+                    });
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error fetching date data:', error);
+                }
+            });
+        });
+
+        // chart.js
+        document.addEventListener("DOMContentLoaded", function() {
+            // Retrieve live data from the server using Jinja2 templating
+            const labels = JSON.parse(document.getElementById('dates_live').textContent);
+            const close = JSON.parse(document.getElementById('close_live').textContent);
+
+            const data = {
+                labels: labels,
+                datasets: [{
+                    label: 'Live Data', // Set a label for the dataset
+                    backgroundColor: 'rgb(255, 99, 132)',
+                    borderColor: 'rgb(255, 99, 132)',
+                    data: close,
+                }]
+            };
+
+            const config = {
+                type: 'line',
+                data: data,
+                options: { maintainAspectRatio: false }
+            };
+
+            const myChart = new Chart(
+                document.getElementById('myChart'),
+                config
+            );
+        });
+    </script>
+</body>
+</html>
